@@ -26,16 +26,23 @@
 <h3>Quick Sort - Lomuto Partition - 100 var</h3>
 <p id="count"></p>
 <div class="row">
-  <div class="col-md-6" id="area1"></div>
-  
+  <div class="col-lg-12" id="area1"></div>
+</div>
+<p id="count2"></p>
+<div class="row">
+  <div class="col-lg-12" id="area2"></div>
 </div>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script>
 var count = 0;
+var count2 = 0;
 // We need to print the value of each line, and then the values of each line following its transformation. Lastly, we need to know the value which is being sorted, my intution is it is the value of its original rotation -45 to 45
-var n = 100,
-    array = d3.shuffle(d3.range(n)),
-    actions = quicksort(array.slice()).reverse();
+var n = 100;
+var array = d3.shuffle(d3.range(n));
+var array2 = d3.shuffle(d3.range(n));
+
+var actions = quicksort(array.slice()).reverse();
+var actions2 = hoare(array2.slice()).reverse();
 
 var margin = {top: 200, right: 40, bottom: 200, left: 40},
     width = 960 - margin.left - margin.right,
@@ -55,21 +62,25 @@ var svg = d3.select("#area1").append("svg")
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-/* delete to create another viz
+
 var svg2 = d3.select("#area2").append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+
+//console.log(array);
+//console.log(array2);
+
 var line2 = svg2.append("g")
-            .attr("class", "line")
-            .selectAll("line")
-            .data(array)
-            .enter().append("line")
-            .attr("transform", transform)
-            .attr("y2", -height);
-*/
+    .attr("class", "line")
+  .selectAll("line")
+    .data(array2)
+  .enter().append("line")
+    .attr("transform", transform)
+    .attr("y2", -height);
+
 <!-- This is the code for the Lomuto QuickSort -->
 
 var line = svg.append("g")
@@ -79,6 +90,7 @@ var line = svg.append("g")
   .enter().append("line")
     .attr("transform", transform)
     .attr("y2", -height);
+
 
 var transition = d3.transition()
     .duration(200)
@@ -114,9 +126,43 @@ var transition = d3.transition()
     });
 
 function transform(d, i) {
-  console.log("translate(" + x(i) + "," + height + ")rotate(" + a(d) + ")");
+//  console.log("translate(" + x(i) + "," + height + ")rotate(" + a(d) + ")");
   return "translate(" + x(i) + "," + height + ")rotate(" + a(d) + ")";
 }
+
+var transition2 = d3.transition()
+    .duration(200)
+    .each("start", function start() {
+      
+      var action2 = actions2.pop();
+      count2 = count2 + 1;
+      document.getElementById("count2").innerHTML = count2; 
+      switch (action2.type) {
+        case "swap": {
+          var i = action2[0],
+              j = action2[1],
+              li = line2[0][i],
+              lj = line2[0][j];
+          line2[0][i] = lj;
+          line2[0][j] = li;
+          transition2.each(function() { line2.transition().attr("transform", transform
+            );});
+          break;
+        }
+        case "partition": {
+          line2.attr("class", function(d, i) {
+            return i === action2.pivot ? "line--pivot"
+                : action2.left <= i && i < action2.right ? null
+                : null;
+          });
+          break;
+        }
+      }
+      
+      if (actions2.length) transition2 = transition2.transition().each("start", start);
+      else transition2.each("end", function() { line2.attr("class", null); });
+
+    });
 
 function quicksort(array) {
   var actions = [];
@@ -142,6 +188,7 @@ function quicksort(array) {
     array[i] = array[j];
     array[j] = t;
     actions.push({type: "swap", "0": i, "1": j});
+ //   console.log(actions);
   }
 
   function recurse(left, right) {
@@ -152,13 +199,57 @@ function quicksort(array) {
       recurse(pivot+1, right);
     }
   }
-
-  recurse(0, array.length-1);
   
+  recurse(0, array.length-1);
   return actions; 
 }
 
 <!-- This is the end of the Lomuto QuickSort -->
+
+function hoare(array) {
+  var actions2 = [];
+
+  function partition(left,right) {
+      var x = array[left];
+      var i = left - 1;
+      var j = right + 1;
+      while(true){
+        do {
+          j = j - 1;
+        } while(array[j] > x);
+
+        do {
+          i = i + 1;
+        } while(array[i] < x);
+        if(i < j){
+            swap(i,j);
+        } else {
+          return j;
+        }
+        }
+  }
+  
+   function swap(i, j) {
+    if (i === j) return;
+    var t = array[i];
+    array[i] = array[j];
+    array[j] = t;
+    actions2.push({type: "swap", "0": i, "1": j});
+  }
+
+  function recurse(left, right) {
+    if (left < right) {
+      var pivot = partition(left, right);
+      actions2.push({type: "partition", "left": left, "pivot": pivot, "right": right});
+      recurse(left, pivot);
+      recurse(pivot+1, right);
+    }
+}
+console.log(array);
+recurse(0, array.length-1);
+console.log(array);
+return actions2;
+}
 
 </script>
 
