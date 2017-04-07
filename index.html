@@ -5,6 +5,8 @@
 <meta charset="utf-8">
 <style>
 
+
+
 .line {
   stroke: #000;
   stroke-width: 1.5px;
@@ -23,11 +25,15 @@
 
 </style>
 <body>
-<h3>Quick Sort - Lomuto Partition - 100 var</h3>
+
+<h2>Quick Sort - Lomuto v. Hoare Partition on 100 var</h2>
+<p>The Hoare partition is faster in practice and gives us more consistent results</p>
+<h3>Lomuto Partition</h3>
 <p id="count"></p>
 <div class="row">
   <div class="col-lg-12" id="area1"></div>
 </div>
+<h3>Hoare Partition</h3>
 <p id="count2"></p>
 <div class="row">
   <div class="col-lg-12" id="area2"></div>
@@ -245,9 +251,7 @@ function hoare(array) {
       recurse(pivot+1, right);
     }
 }
-console.log(array);
 recurse(0, array.length-1);
-console.log(array);
 return actions2;
 }
 
